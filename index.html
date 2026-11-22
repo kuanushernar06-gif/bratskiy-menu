@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bratskiy Shashlyk — Мәзір</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0; background:#0b0a08; font-family:'Montserrat',sans-serif}
+  a{color:#e7dcc2; text-decoration:none}
+  a:hover{color:#f6e27a}
+  button{font-family:inherit; border:none}
+  .nav-pill{transition:box-shadow .15s ease, border-color .15s ease, transform .1s ease}
+  .nav-pill:hover{box-shadow:0 0 14px rgba(205,168,106,0.45); border-color:#f6e27a}
+  .nav-pill:active{transform:scale(0.96)}
+  .icon-white{filter:invert(1)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  var ACCENT = '#caa24c';
+  var WHATSAPP_PHONE = '77070567077';
+
+  var state = {
+    lang: 'kk',
+    cart: {},
+    sauceSel: {},
+    activeNav: null,
+    cartOpen: false,
+    deliveryType: 'pickup'
+  };
+
+  function T(kk, ru) { return state.lang === 'ru' ? ru : kk; }
+  function fmtPrice(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' тг'; }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function li(kk, ru) { return [kk, ru]; }
+  function L(t) { return { text: t }; }
+
+  var categoriesRaw = [
+    { id: 'shashlyk', title: 'Шашлықтар', ruTitle: 'Шашлыки', icon: 'shashlyk', items: [
+      ['Картоп', 'Картофель', 1190], ['Көмірде піскен көкөністер', 'Овощи на мангале', 1290], ['Шампиньон', 'Шампиньоны', 1290],
+      ['Тауық жамбасы', 'Окорочка', 1390], ['Тауық филесі', 'Куриное филе', 1490], ['Тауық қанаты', 'Крылышки', 1590],
+      ['Үйрек филесі', 'Утиное филе', 1590], ['Қабықтағы бауыр', 'Печень в оболочке', 1590], ['Люля кебаб', 'Люля Кебаб', 1890],
+      ['Хан кебаб', 'Хан Кебаб', 1890], ['Қабырға', 'Ребрышки', 1890], ['Қой еті', 'Баранина', 1990],
+      ['Бөдене', 'Перепелка', 1990], ['Адана кебаб', 'Адана Кебаб', 1990], ['Антрекот', 'Антрекот', 2990],
+      ['Арқа', 'Спинка', 2990], ['Скумбрия', 'Скумбрия', 3290], ['Форель', 'Форель', 3290]
+    ]},
+    { id: 'vypechka', title: 'Пісірілген өнімдер', ruTitle: 'Выпечка', icon: 'vypechka', items: [
+      ['Ірімшік пен көкөніспен хычын', 'Хычины с сыром и зеленью', 2190], ['Аджарлық хачапури', 'Хачапури по-аджарски', 3190],
+      ['Мегрелдік хачапури', 'Хачапури по-мегрельски', 2390]
+    ]},
+    { id: 'zakuski', title: 'Тіскебасарлар', ruTitle: 'Закуски', icon: 'zakuski', items: [
+      ['Сыралық асшаяндар', 'Пивные креветки', 3590], ['Сарымсақты гарлик', 'Гарлики чесночные', 1190], ['Barbican 0.0%', 'Barbican 0.0%', 1790]
+    ]},
+    { id: 'hleb', title: 'Нан', ruTitle: 'Хлеб', icon: 'hleb', items: [
+      ['Лаваш', 'Лаваш', 290], ['Күлше', 'Лепешка', 290], ['Сарымсақты нан', 'Чесночный хлеб', 590],
+      ['Нан себеті', 'Хлебная корзина', 590], ['Таба нан', 'Таба нан', 590]
+    ]},
+    { id: 'garnir', title: 'Қосымша тағам', ruTitle: 'Гарниры', icon: 'garnir', items: [
+      ['Картоп фри', 'Фри', 1290], ['Күріш', 'Рис', 1290], ['Ауылша қуырылған картоп', 'Картофель по-деревенски', 1290]
+    ]}
+  ];
+
+  var saucesRaw = [
+    ['Қызыл соус', 'Красный соус'], ['Ақ соус', 'Белый соус'], ['Қышқыл-тәтті', 'Кисло-сладкий'],
+    ['Тартар', 'Тар-тар'], ['Кетчуп', 'Кетчуп'], ['Майонез', 'Майонез'],
+    ['Қаймақ', 'Сметана'], ['Ірімшікті', 'Сырный']
+  ];
+
+  var rulesRaw = [
+    ['алкогольдік мас күйінде келуге', 'приходить в состоянии алкогольного опьянения'],
+    ['үй жануарларымен кіруге', 'заходить с домашними животными'],
+    ['өзімен бірге сусындар мен тағам өнімдерін алып кіруге', 'проносить с собой напитки и продукты питания'],
+    ['алкогольдік ішімдіктерді алып келуге және ішуге', 'приносить и употреблять алкогольные напитки'],
+    ['арнайы белгіленген орындардан басқа жерлерде темекі шегуге', 'курить в местах, не отведённых для этого'],
+    ['дөрекі сөйлеуге, бейәдеп сөздер қолдануға', 'грубо выражаться, использовать нецензурные слова'],
+    ['қызметкерлердің жұмысына кедергі келтіруге', 'мешать работе сотрудников'],
+    ['кез келген рұқсатсыз сауда жүргізуге', 'вести любую несанкционированную торговлю']
+  ];
+
+  var setsRaw = [
+    [li('Супер сет', 'Супер сет'), 4990, [li('Тауық жамбасы (3 кесектен) — 10 таяқша', 'Окорочка (по 3 куска) — 10 палочек'), li('Coca-Cola — 1 л', 'Coca-Cola — 1 л'), li('Таба нан — 1 дана', 'Таба нан — 1 шт'), li('Соус — 2 дана', 'Соус — 2 шт')]],
+    [li('Люля кебаб 5+5', 'Люля кебаб 5+5'), 9990, [li('Люля кебаб — 5 таяқша', 'Люля кебаб — 5 палочек'), li('Тауық жамбасы (3 кесектен) — 5 таяқша', 'Окорочка (по 3 куска) — 5 палочек'), li('Coca-Cola — 1 л', 'Coca-Cola — 1 л')]],
+    [li('Қой еті 5+5', 'Баранина 5+5'), 11990, [li('Қой еті — 5 таяқша', 'Баранина — 5 палочек'), li('Тауық жамбасы (3 кесектен) — 5 таяқша', 'Окорочка (по 3 куска) — 5 палочек'), li('Coca-Cola — 1 л', 'Coca-Cola — 1 л')]],
+    [li('Сет мания', 'Сет мания'), 7990, [li('Тауық жамбасы (3 кесектен) — 20 таяқша', 'Окорочка (по 3 куска) — 20 палочек'), li('Coca-Cola — 1 л', 'Coca-Cola — 1 л')]],
+    [li('Жазғы сет', 'Летний сет'), 11990, [li('Жаңа салат — 1 порция', 'Свежий салат — 1 порция'), li('Тауық жамбасы — 2 порция', 'Окорочка — 2 порции'), li('Қой еті — 2 таяқша', 'Баранина — 2 палочки'), li('Люля кебаб — 2 таяқша', 'Люля кебаб — 2 палочки'), li('Тауық жамбасы — 2 таяқша', 'Окорочка — 2 палочки'), li('Лаваш — 2 дана', 'Лаваш — 2 шт'), li('Соус — 2 дана', 'Соус — 2 шт')]],
+    [li('Ассорти Кавказ', 'Ассорти Кавказ'), 21990, [li('Хан кебаб — 2 таяқша', 'Хан Кебаб — 2 палочки'), li('Қой еті — 2 таяқша', 'Баранина — 2 палочки'), li('Люля кебаб — 2 таяқша', 'Люля кебаб — 2 палочки'), li('Тауық қанаты — 2 таяқша', 'Крылышки — 2 палочки'), li('Үйрек филесі — 2 таяқша', 'Утиное филе — 2 палочки'), li('Тауық филесі — 2 таяқша', 'Куриное филе — 2 палочки'), li('Тауық жамбасы — 2 таяқша', 'Окорочка — 2 палочки'), li('Шампиньон — 2 таяқша', 'Шампиньоны — 2 палочки'), li('Көмірде піскен көкөністер — 2 таяқша', 'Овощи на мангале — 2 палочки'), li('Лаваш — 2 дана', 'Лаваш — 2 шт'), li('Соус — 2 дана', 'Соус — 2 шт')]],
+    [li('Сет бомба', 'Сет бомба'), 17990, [li('Люля кебаб — 10 таяқша', 'Люля кебаб — 10 палочек'), li('Үйрек филесі — 10 таяқша', 'Утиное филе — 10 палочек'), li('Тауық жамбасы (3 кесектен) — 10 таяқша', 'Окорочка (по 3 куска) — 10 палочек'), li('Coca-Cola — 1 л', 'Coca-Cola — 1 л'), li('Қызыл соус — 1 дана', 'Соус красный — 1 шт'), li('Ақ соус — 1 дана', 'Соус белый — 1 шт'), li('Таба нан — 1 дана', 'Таба нан — 1 шт')]],
+    [li('Тиімді сет', 'Выгодный сет'), 19990, [li('Тауық жамбасы (3 кесектен) — 10 таяқша', 'Окорочка (по 3 куска) — 10 палочек'), li('Қой еті — 5 таяқша', 'Баранина — 5 палочек'), li('Люля кебаб — 5 таяқша', 'Люля кебаб — 5 палочек'), li('Лаваш — 5 дана', 'Лаваш — 5 шт'), li('Соус — 5 дана', 'Соус — 5 шт')]],
+    [li('Адал сет', 'Адал сет'), 21990, [li('Антрекот — 2 таяқша', 'Антрекот — 2 палочки'), li('Арқа — 2 таяқша', 'Спинка — 2 палочки'), li('Қабырға — 2 таяқша', 'Рёбрышки — 2 палочки'), li('Қой еті — 2 таяқша', 'Баранина — 2 палочки'), li('Люля кебаб — 2 таяқша', 'Люля кебаб — 2 палочки'), li('Кавказша ассорти — 1 порция', 'Кавказская нарезка — 1 порция'), li('Лаваш — 2 дана', 'Лаваш — 2 шт'), li('Соус — 2 дана', 'Соус — 2 шт')]],
+    [li('Бауырлас сет', 'Братский сет'), 21990, [li('Қой еті — 10 таяқша', 'Баранина — 10 палочек'), li('Тауық жамбасы (3 кесектен) — 10 таяқша', 'Окорочка (по 3 куска) — 10 палочек'), li('Лаваш — 5 дана', 'Лаваш — 5 шт'), li('Соус — 5 дана', 'Соус — 5 шт')]],
+    [li('Толық пакет', 'Полный пакет'), 45990, [li('Қой еті — 10 таяқша', 'Баранина — 10 палочек'), li('Тауық жамбасы (3 кесектен) — 10 таяқша', 'Окорочка (по 3 куска) — 10 палочек'), li('Люля кебаб — 5 таяқша', 'Люля кебаб — 5 палочек'), li('Тауық қанаты — 5 таяқша', 'Крылышки — 5 палочек'), li('Тауық филесі — 5 таяқша', 'Куриное филе — 5 палочек')]]
+  ];
+
+  var miniSetsRaw = [
+    ['Мини бомба', 9990, [li('Тауық жамбасы — 5 таяқша (3 кесектен)', 'Окорочка — 5 палочек (3 куска)'), li('Үйрек филесі — 5 таяқша (4 кесектен)', 'Утиное филе — 5 палочек (4 куска)'), li('Люля-кебаб — 5 таяқша', 'Люля-кебаб — 5 палочек'), li('Таба нан — 1 дана', 'Таба нан — 1 шт'), li('Coca-Cola — 1 л', 'Coca-Cola — 1 л'), li('Соус — 2 дана', 'Соус — 2 шт')]],
+    ['Мини ассорти Кавказ', 11990, [li('Қой еті — 1 таяқша', 'Баранина — 1 палочка'), li('Люля-кебаб — 1 таяқша', 'Люля-кебаб — 1 палочка'), li('Хан-кебаб — 1 таяқша', 'Хан-кебаб — 1 палочка'), li('Тауық жамбасы — 1 таяқша', 'Окорочка — 1 палочка'), li('Тауық филесі — 1 таяқша', 'Куриное филе — 1 палочка'), li('Үйрек филесі — 1 таяқша', 'Утиное филе — 1 палочка'), li('Тауық қанаты — 1 таяқша', 'Крылышки — 1 палочка'), li('Шампиньон — 1 таяқша', 'Шампиньоны — 1 палочка'), li('Көмірде піскен көкөністер — 1 таяқша', 'Овощи на мангале — 1 палочка'), li('Лаваш — 2 дана', 'Лаваш — 2 шт'), li('Соус — 2 дана', 'Соус — 2 шт')]],
+    ['Мини адал сет', 11990, [li('Антрекот — 1 таяқша', 'Антрекот — 1 палочка'), li('Арқа — 1 таяқша', 'Спинка — 1 палочка'), li('Қабырға — 1 таяқша', 'Рёбрышки — 1 палочка'), li('Қой еті — 1 таяқша', 'Баранина — 1 палочка'), li('Люля-кебаб — 1 таяқша', 'Люля-кебаб — 1 палочка'), li('Кавказша ассорти — 1 порция', 'Кавказская нарезка — 1 порция'), li('Лаваш — 2 дана', 'Лаваш — 2 шт'), li('Соус — 2 дана', 'Соус — 2 шт')]]
+  ];
+
+  function getCart() { return state.cart; }
+  function qtyOf(key) { return getCart()[key] || 0; }
+  function incKey(key) {
+    var c = Object.assign({}, state.cart);
+    c[key] = (c[key] || 0) + 1;
+    state.cart = c;
+    render();
+  }
+  function decKey(key) {
+    var c = Object.assign({}, state.cart);
+    if (c[key]) {
+      c[key] = c[key] - 1;
+      if (c[key] <= 0) delete c[key];
+    }
+    state.cart = c;
+    render();
+  }
+
+  function pillStyleNav(id) {
+    var base = "padding:9px 18px; border-radius:999px; font-family:'Montserrat',sans-serif; font-size:13px;";
+    if (state.activeNav === id) {
+      return base + "font-weight:700; border:1px solid " + ACCENT + "; color:#1a1408; background:" + ACCENT + "; box-shadow:0 0 18px rgba(205,168,106,0.55);";
+    }
+    return base + "font-weight:500; border:1px solid rgba(205,168,106,0.4); color:#e7dcc2; background:rgba(255,255,255,0.03);";
+  }
+
+  function langPillStyle(code) {
+    var base = "padding:6px 16px; border-radius:999px; font-family:'Montserrat',sans-serif; font-size:12px; font-weight:700; letter-spacing:1px;";
+    if (state.lang === code) {
+      return base + "border:1px solid " + ACCENT + "; color:#1a1408; background:" + ACCENT + ";";
+    }
+    return base + "border:1px solid rgba(205,168,106,0.4); color:#e7dcc2; background:rgba(255,255,255,0.03);";
+  }
+
+  function saucePillStyle(on) {
+    var base = "padding:8px 16px; border-radius:999px; font-family:'Montserrat',sans-serif; font-size:14px; cursor:pointer;";
+    return on
+      ? base + "font-weight:700; border:1px solid " + ACCENT + "; color:#1a1408; background:" + ACCENT + "; box-shadow:0 0 14px rgba(205,168,106,0.45);"
+      : base + "font-weight:400; border:1px solid rgba(205,168,106,0.35); color:#ece6da; background:rgba(255,255,255,0.03);";
+  }
+
+  function deliveryPillStyle(id) {
+    var base = "flex:1 1 auto; padding:9px 14px; border-radius:999px; font-family:'Montserrat',sans-serif; font-size:13px; text-align:center; cursor:pointer;";
+    return state.deliveryType === id
+      ? base + "font-weight:700; border:1px solid " + ACCENT + "; color:#1a1408; background:" + ACCENT + ";"
+      : base + "font-weight:500; border:1px solid rgba(205,168,106,0.4); color:#e7dcc2; background:rgba(255,255,255,0.03);";
+  }
+
+  function stepperHtml(key, qty, big) {
+    var sz = big ? 28 : 24;
+    var icoSz = big ? 12 : 11;
+    return '' +
+      '<div style="flex:0 0 auto; display:flex; align-items:center; gap:' + (big ? 7 : 6) + 'px">' +
+        '<button type="button" data-action="dec" data-key="' + key + '" aria-label="' + esc(T('Азайту', 'Уменьшить')) + '" style="width:' + sz + 'px; height:' + sz + 'px; border-radius:50%; border:1px solid rgba(205,168,106,0.5); background:transparent; color:#e7dcc2; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0"><svg width="' + icoSz + '" height="' + icoSz + '" viewBox="0 0 24 24" aria-hidden="true" style="pointer-events:none"><path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg></button>' +
+        '<span style="min-width:' + (big ? 18 : 14) + 'px; text-align:center; font-size:' + (big ? 15 : 13) + 'px; color:#ece6da">' + qty + '</span>' +
+        '<button type="button" data-action="inc" data-key="' + key + '" aria-label="' + esc(T('Көбейту', 'Увеличить')) + '" style="width:' + sz + 'px; height:' + sz + 'px; border-radius:50%; border:none; background:' + ACCENT + '; color:#1a1408; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0"><svg width="' + icoSz + '" height="' + icoSz + '" viewBox="0 0 24 24" aria-hidden="true" style="pointer-events:none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path></svg></button>' +
+      '</div>';
+  }
+
+  function categoryIconHtml(icon) {
+    return '<img src="assets/icon-' + icon + '.png" alt="" aria-hidden="true" class="icon-white" style="width:22px; height:22px; object-fit:contain">';
+  }
+
+  function render() {
+    var allEntries = [];
+    var mkEntries = {};
+
+    function mk(key, name, price) {
+      var qty = qtyOf(key);
+      var e = { key: key, name: name, price: price, qty: qty, priceText: fmtPrice(price) };
+      allEntries.push(e);
+      return e;
+    }
+
+    var categories = categoriesRaw.map(function (c) {
+      return {
+        id: c.id,
+        title: state.lang === 'ru' ? c.ruTitle : c.title,
+        icon: c.icon,
+        items: c.items.map(function (it, idx) {
+          var key = 'c_' + c.id + '_' + idx;
+          return mk(key, T(it[0], it[1]), it[2]);
+        })
+      };
+    });
+
+    var navItemsData = categoriesRaw.map(function (c) {
+      return { id: c.id, title: state.lang === 'ru' ? c.ruTitle : c.title };
+    }).concat([
+      { id: 'sets', title: T('Сеттер', 'Сеты') },
+      { id: 'address', title: T('Мекен-жай', 'Адрес') }
+    ]);
+
+    var sauces = saucesRaw.map(function (pair, idx) {
+      var key = 'sa_' + idx;
+      var on = !!state.sauceSel[key];
+      return { key: key, text: T(pair[0], pair[1]), on: on };
+    });
+    var selectedSauceNames = sauces.filter(function (s) { return s.on; }).map(function (s) { return s.text; });
+
+    var rules = rulesRaw.map(function (pair) { return T(pair[0], pair[1]); });
+
+    var sets = setsRaw.map(function (row, idx) {
+      var key = 's_' + idx;
+      var base = mk(key, T(row[0][0], row[0][1]), row[1]);
+      base.items = row[2].map(function (pair) { return T(pair[0], pair[1]); });
+      return base;
+    });
+
+    var miniSets = miniSetsRaw.map(function (row, idx) {
+      var key = 'm_' + idx;
+      var base = mk(key, row[0], row[1]);
+      base.items = row[2].map(function (pair) { return T(pair[0], pair[1]); });
+      return base;
+    });
+
+    var chosen = allEntries.filter(function (e) { return e.qty > 0; });
+    var totalQty = chosen.reduce(function (s, e) { return s + e.qty; }, 0) + selectedSauceNames.length;
+    var totalPrice = chosen.reduce(function (s, e) { return s + e.qty * e.price; }, 0);
+    var hasItems = chosen.length > 0 || selectedSauceNames.length > 0;
+
+    var deliveryChosenLabel = state.deliveryType === 'delivery' ? T('Жеткізу', 'Доставка') : T('Барып алу', 'Самовывоз');
+    var chosenItemsList = chosen.map(function (e) { return e.name + ' — ' + e.qty + ' × ' + e.priceText; })
+      .concat(selectedSauceNames);
+
+    var orderLines = chosen.map(function (e) { return e.name + ' — ' + e.qty + ' x ' + fmtPrice(e.price) + ' = ' + fmtPrice(e.qty * e.price); }).join('\n');
+    var sauceLine = selectedSauceNames.length ? T('\n\nСоустар: ', '\n\nСоусы: ') + selectedSauceNames.join(', ') : '';
+    var deliveryLine = T('\n\nАлу тәсілі: ', '\n\nСпособ получения: ') + deliveryChosenLabel;
+    var messageText = T('Тапсырыс — Bratskiy Shashlyk\n\n', 'Заказ — Bratskiy Shashlyk\n\n') + orderLines + sauceLine + deliveryLine + T('\n\nЖалпы сома: ', '\n\nИтого: ') + fmtPrice(totalPrice);
+    var orderLink = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(messageText);
+
+    var html = '';
+    html += '<div style="min-height:100vh; width:100%; background: radial-gradient(ellipse 1100px 650px at 50% -12%, rgba(184,86,46,0.26), transparent 62%), radial-gradient(ellipse 800px 520px at 100% 8%, rgba(150,70,40,0.18), transparent 58%), radial-gradient(ellipse 800px 520px at -5% 55%, rgba(120,55,32,0.16), transparent 58%), radial-gradient(ellipse 900px 600px at 50% 110%, rgba(140,62,34,0.14), transparent 60%), linear-gradient(180deg,#140d0a 0%, #0c0908 45%, #0b0a08 100%); color:#ece6da; position:relative">';
+
+    // Header
+    html += '<header style="text-align:center; padding:52px 20px 26px">';
+    html += '<div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px">';
+    html += '<button type="button" data-action="setLang" data-lang="kk" class="nav-pill" style="' + langPillStyle('kk') + '">ҚАЗ</button>';
+    html += '<button type="button" data-action="setLang" data-lang="ru" class="nav-pill" style="' + langPillStyle('ru') + '">РУС</button>';
+    html += '</div>';
+    html += '<div style="display:inline-flex; flex-direction:column; align-items:center; gap:14px">';
+    html += '<h1 style="margin:0"><img src="assets/logo.png" alt="BRATSKIY" style="width:112px; height:112px; border-radius:50%; box-shadow:0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(205,168,106,0.3)"></h1>';
+    html += '<div style="display:flex; align-items:center; justify-content:center; gap:12px"><span style="width:28px; height:1px; background:' + ACCENT + '"></span><span style="font-family:\'Montserrat\',sans-serif; font-size:12px; letter-spacing:4px; color:' + ACCENT + '; font-weight:600">SHASHLYK · HALAL</span><span style="width:28px; height:1px; background:' + ACCENT + '"></span></div>';
+    html += '</div>';
+    html += '<h2 style="margin:26px 0 10px; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:64px; line-height:1; letter-spacing:2px; text-transform:uppercase; color:#f5f1e6">' + T('Мәзір', 'Меню') + '</h2>';
+    html += '<div style="display:flex; align-items:center; justify-content:center; gap:10px"><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span><p style="margin:0; font-size:11px; letter-spacing:2px; color:#a89a86; text-transform:uppercase">' + T('Тағамды таңдап тапсырып беріңіз', 'Выберите блюда и оформите заказ') + '</p><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span></div>';
+    html += '</header>';
+
+    // Nav
+    html += '<nav aria-label="Санаттар" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:0 20px 44px; max-width:800px; margin:0 auto">';
+    navItemsData.forEach(function (n) {
+      html += '<a href="#' + n.id + '" data-action="navClick" data-id="' + n.id + '" class="nav-pill" style="' + pillStyleNav(n.id) + '">' + n.title + '</a>';
+    });
+    html += '</nav>';
+
+    // Main
+    html += '<main style="max-width:900px; margin:0 auto; padding:0 20px 230px">';
+
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:22px; margin-bottom:46px">';
+    categories.forEach(function (cat) {
+      html += '<section id="' + cat.id + '" style="border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:26px 22px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
+      html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center">';
+      html += '<div style="width:44px; height:44px; border-radius:50%; border:1.5px solid ' + ACCENT + '; background:rgba(205,168,106,0.08); display:flex; align-items:center; justify-content:center; flex:0 0 auto">' + categoryIconHtml(cat.icon) + '</div>';
+      html += '<h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:#f3ead3">' + cat.title + '</h3>';
+      html += '<span style="width:44px; height:1px; background:' + ACCENT + '"></span>';
+      html += '</div>';
+      html += '<div style="display:flex; flex-direction:column">';
+      cat.items.forEach(function (item) {
+        html += '<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed rgba(205,168,106,0.16)">';
+        html += '<span style="flex:1 1 140px; font-size:14.5px; color:#ece6da">' + item.name + '</span>';
+        html += '<div style="flex:0 0 auto; display:flex; align-items:center; justify-content:flex-end; gap:10px; margin-left:auto">';
+        html += '<span style="flex:0 0 auto; font-size:14.5px; font-weight:600; color:' + ACCENT + '; white-space:nowrap">' + item.priceText + '</span>';
+        html += stepperHtml(item.key, item.qty, false);
+        html += '</div></div>';
+      });
+      html += '</div></section>';
+    });
+    html += '</div>';
+
+    // Sauces
+    html += '<section id="sousy_chips" style="margin:0 0 46px 0; border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:26px 22px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
+    html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center">';
+    html += '<div style="width:44px; height:44px; border-radius:50%; border:1.5px solid ' + ACCENT + '; background:rgba(205,168,106,0.08); display:flex; align-items:center; justify-content:center; flex:0 0 auto">' + categoryIconHtml('sousy') + '</div>';
+    html += '<h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:#f3ead3">' + T('Соустар', 'Соусы') + '</h3>';
+    html += '<span style="width:44px; height:1px; background:' + ACCENT + '"></span></div>';
+    html += '<div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center">';
+    sauces.forEach(function (s) {
+      html += '<button type="button" data-action="sauceToggle" data-key="' + s.key + '" style="' + saucePillStyle(s.on) + '">' + s.text + '</button>';
+    });
+    html += '</div></section>';
+
+    // Sets
+    html += '<section id="sets" style="margin:0 0 20px 0; scroll-margin-top:30px">';
+    html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:28px; letter-spacing:1px; text-transform:uppercase; color:#f5f1e6">' + T('Сеттер', 'Сеты') + '</h3><span style="width:50px; height:1px; background:' + ACCENT + '"></span></div>';
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px">';
+    sets.forEach(function (set) {
+      html += '<div style="border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:22px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column">';
+      html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px"><h4 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:18px; letter-spacing:0.5px; text-transform:uppercase; color:#f3ead3">' + set.name + '</h4><span style="flex:0 0 auto; padding:5px 13px; border-radius:999px; border:1px solid ' + ACCENT + '; color:' + ACCENT + '; font-weight:700; font-size:13px; white-space:nowrap">' + set.priceText + '</span></div>';
+      html += '<ul style="margin:0 0 16px; padding-left:18px; display:flex; flex-direction:column; gap:7px; flex:1 1 auto">';
+      set.items.forEach(function (line) { html += '<li style="font-size:14px; color:#c9c2b4">' + line + '</li>'; });
+      html += '</ul>';
+      html += '<div style="display:flex; align-items:center; justify-content:flex-end; gap:7px; padding-top:12px; border-top:1px solid rgba(205,168,106,0.15)">' + stepperHtml(set.key, set.qty, true) + '</div>';
+      html += '</div>';
+    });
+    html += '</div></section>';
+
+    // Mini sets
+    html += '<section id="mini_sets" style="margin:46px 0 20px 0; scroll-margin-top:30px">';
+    html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:28px; letter-spacing:1px; text-transform:uppercase; color:#f5f1e6">' + T('Мини сеттер', 'Мини-сеты') + '</h3><span style="width:50px; height:1px; background:' + ACCENT + '"></span></div>';
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px">';
+    miniSets.forEach(function (mset) {
+      html += '<div style="border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:22px; background:rgba(255,255,255,0.02); display:flex; flex-direction:column">';
+      html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px"><h4 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:18px; letter-spacing:0.5px; text-transform:uppercase; color:#f3ead3">' + mset.name + '</h4><span style="flex:0 0 auto; padding:5px 13px; border-radius:999px; border:1px solid ' + ACCENT + '; color:' + ACCENT + '; font-weight:700; font-size:13px; white-space:nowrap">' + mset.priceText + '</span></div>';
+      html += '<ul style="margin:0 0 16px; padding-left:18px; display:flex; flex-direction:column; gap:7px; flex:1 1 auto">';
+      mset.items.forEach(function (line) { html += '<li style="font-size:14px; color:#c9c2b4">' + line + '</li>'; });
+      html += '</ul>';
+      html += '<div style="display:flex; align-items:center; justify-content:flex-end; gap:7px; padding-top:12px; border-top:1px solid rgba(205,168,106,0.15)">' + stepperHtml(mset.key, mset.qty, true) + '</div>';
+      html += '</div>';
+    });
+    html += '</div></section>';
+
+    // Address
+    html += '<section id="address" style="margin:46px 0 20px 0; border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:28px 24px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
+    html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:#f3ead3">' + T('Мекен-жай', 'Адрес') + '</h3><span style="width:44px; height:1px; background:' + ACCENT + '"></span></div>';
+    var gisLabel = T('2GIS-те ашу →', 'Открыть в 2GIS →');
+    html += '<div style="display:flex; flex-direction:column; gap:16px">';
+    html += '<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border:1px solid rgba(205,168,106,0.25); border-radius:12px; background:rgba(255,255,255,0.02)"><span style="font-size:14.5px; color:#ece6da">' + T('Ақбақай көшесі, 2 / Садуақасов көшесі, 120', 'Улица Акбакай, 2 / улица Садвакасова, 120') + '</span><a href="https://2gis.kz/almaty/geo/70000001092855591/76.834781,43.220449" target="_blank" rel="noopener" style="flex:0 0 auto; padding:8px 16px; border-radius:999px; border:1px solid ' + ACCENT + '; color:' + ACCENT + '; font-size:13px; font-weight:600; white-space:nowrap">' + gisLabel + '</a></div>';
+    html += '<div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px; border:1px solid rgba(205,168,106,0.25); border-radius:12px; background:rgba(255,255,255,0.02)"><span style="font-size:14.5px; color:#ece6da">' + T('Жұмабаев көшесі, 31 / Кабардин көшесі, 37', 'Улица Жумабаева, 31 / улица Кабардинская, 37') + '</span><a href="https://2gis.kz/almaty/geo/70000001117586790" target="_blank" rel="noopener" style="flex:0 0 auto; padding:8px 16px; border-radius:999px; border:1px solid ' + ACCENT + '; color:' + ACCENT + '; font-size:13px; font-weight:600; white-space:nowrap">' + gisLabel + '</a></div>';
+    html += '</div></section>';
+
+    // Rules
+    html += '<section id="rules" style="margin:46px 0 20px 0; border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:28px 24px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
+    html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:#f3ead3">' + T('Мекеме ережелері', 'Правила заведения') + '</h3><span style="width:44px; height:1px; background:' + ACCENT + '"></span></div>';
+    html += '<p style="margin:0 0 16px; font-size:14px; line-height:1.7; color:#cfc7b8">' + T('Bratskiy Shashlyk кафесіне кіре отырып, төменде көрсетілген ережелер мен шарттармен келісесіз. Аталған ережелер барлық келушілер үшін міндетті. Мекемеде тыйым салынады:', 'Заходя в кафе Bratskiy Shashlyk, вы соглашаетесь с указанными ниже правилами и условиями. Эти правила обязательны для всех посетителей. В заведении запрещается:') + '</p>';
+    html += '<ul style="margin:0 0 16px; padding-left:20px; display:flex; flex-direction:column; gap:8px">';
+    rules.forEach(function (r) { html += '<li style="font-size:14px; line-height:1.6; color:#cfc7b8">' + r + '</li>'; });
+    html += '</ul>';
+    html += '<p style="margin:0; font-size:13px; line-height:1.7; color:#a89f8f">' + T('Мекеме жеке заттар мен құнды бұйымдардың жоғалуы үшін жауапкершілік алмайды. Мекеме келушілері қоғамдық тәртіпті, сондай-ақ мекеме аумағында болу ережелері мен шарттарын бұзғаны үшін толық жауапкершілік алады.', 'Заведение не несёт ответственности за утерю личных вещей и ценностей. Посетители несут полную ответственность за нарушение общественного порядка, а также правил и условий пребывания на территории заведения.') + '</p>';
+    html += '</section>';
+
+    html += '</main>';
+
+    // Footer
+    html += '<footer style="text-align:center; padding:40px 20px 64px; border-top:1px solid rgba(205,168,106,0.15); margin-top:10px">';
+    html += '<p style="font-size:13px; color:#a89f8f; margin:0 0 10px; letter-spacing:0.5px">' + T('Қызмет көрсету — 10%', 'Обслуживание — 10%') + '</p>';
+    html += '<p style="font-family:\'Oswald\',sans-serif; font-size:18px; letter-spacing:0.5px; color:' + ACCENT + '; margin:0 0 18px">' + T('Асыңыз дәмді болсын, сізге жағымды және көтеріңкі көңіл күй тілейміз', 'Приятного аппетита, желаем вам хорошего и приподнятого настроения') + '</p>';
+    html += '<p style="font-size:12px; color:#6b6355; margin:0; letter-spacing:1px">BRATSKIY SHASHLYK</p>';
+    html += '</footer>';
+
+    // Cart bar
+    if (hasItems) {
+      html += '<div style="position:fixed; left:0; right:0; bottom:0; z-index:40; background:rgba(14,12,9,0.94); backdrop-filter:blur(6px); border-top:1px solid rgba(205,168,106,0.35); padding:14px 18px; display:flex; flex-direction:column; align-items:center; gap:10px">';
+      if (state.cartOpen) {
+        html += '<div style="width:100%; max-width:800px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-bottom:4px; border-bottom:1px solid rgba(205,168,106,0.2)">';
+        chosenItemsList.forEach(function (t) { html += '<div style="font-size:13px; color:#cfc7b8">' + t + '</div>'; });
+        html += '</div>';
+      }
+      html += '<div style="width:100%; max-width:800px; display:flex; gap:10px">';
+      html += '<button type="button" data-action="setDelivery" data-type="pickup" style="' + deliveryPillStyle('pickup') + '">' + T('Барып алу', 'Самовывоз') + '</button>';
+      html += '<button type="button" data-action="setDelivery" data-type="delivery" style="' + deliveryPillStyle('delivery') + '">' + T('Жеткізу', 'Доставка') + '</button>';
+      html += '</div>';
+      html += '<div style="width:100%; max-width:800px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap">';
+      html += '<button type="button" data-action="toggleCart" style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:8px; color:#ece6da; text-align:left"><div><div style="font-size:13px; color:#a89f8f; display:flex; align-items:center; gap:6px">' + T('Себетте: ', 'В корзине: ') + totalQty + T(' дана', ' шт') + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a89f8f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(' + (state.cartOpen ? '180deg' : '0deg') + '); transition:transform .15s ease"><path d="M5 9l7 7 7-7"></path></svg></div><div style="font-size:18px; font-weight:700; color:#f3ead3">' + fmtPrice(totalPrice) + '</div></div></button>';
+      html += '<div style="display:flex; align-items:center; gap:14px">';
+      html += '<button type="button" data-action="clearCart" style="background:none; border:none; padding:0; color:#a89f8f; font-size:13px; text-decoration:underline; cursor:pointer">' + T('Себетті тазалау', 'Очистить корзину') + '</button>';
+      html += '<a href="' + orderLink + '" target="_blank" rel="noopener" style="text-decoration:none; padding:13px 26px; border-radius:999px; background:' + ACCENT + '; color:#1a1408; font-weight:700; font-size:15px; white-space:nowrap">' + T('Тапсырыс беру →', 'Оформить заказ →') + '</a>';
+      html += '</div></div></div>';
+    }
+
+    html += '</div>';
+
+    document.getElementById('app').innerHTML = html;
+  }
+
+  document.getElementById('app').addEventListener('click', function (e) {
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var action = el.getAttribute('data-action');
+    if (action === 'setLang') { state.lang = el.getAttribute('data-lang'); render(); }
+    else if (action === 'navClick') { state.activeNav = el.getAttribute('data-id'); render(); }
+    else if (action === 'inc') { incKey(el.getAttribute('data-key')); }
+    else if (action === 'dec') { e.preventDefault(); decKey(el.getAttribute('data-key')); }
+    else if (action === 'sauceToggle') {
+      var key = el.getAttribute('data-key');
+      var s = Object.assign({}, state.sauceSel);
+      s[key] = !s[key];
+      state.sauceSel = s;
+      render();
+    }
+    else if (action === 'setDelivery') { state.deliveryType = el.getAttribute('data-type'); render(); }
+    else if (action === 'toggleCart') { state.cartOpen = !state.cartOpen; render(); }
+    else if (action === 'clearCart') { state.cart = {}; state.sauceSel = {}; render(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
