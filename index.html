@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0; background:#0b0a08; font-family:'Montserrat',sans-serif}
+  html{scroll-behavior:smooth; overflow-x:hidden}
+  body{margin:0; background:#000000; font-family:'Montserrat',sans-serif; overflow-x:hidden}
   a{color:#e7dcc2; text-decoration:none}
   a:hover{color:#f6e27a}
   button{font-family:inherit; border:none}
@@ -180,6 +180,13 @@
     return '<img src="icon-' + icon + '.png" alt="" aria-hidden="true" class="icon-white" style="width:22px; height:22px; object-fit:contain">';
   }
 
+  function bgLayer(src) {
+    var fade = 'linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%)';
+    return '' +
+      '<div style="position:absolute; top:-60px; bottom:-60px; left:50%; width:100vw; transform:translateX(-50%) scale(1.08); z-index:-1; background-image:url(' + src + '); background-size:cover; background-position:center; filter:blur(24px) saturate(0.7) brightness(0.8); -webkit-mask-image:' + fade + '; mask-image:' + fade + '"></div>' +
+      '<div style="position:absolute; top:-60px; bottom:-60px; left:50%; width:100vw; transform:translateX(-50%); z-index:-1; background:rgba(0,0,0,0.86)"></div>';
+  }
+
   function render() {
     var allEntries = [];
     var mkEntries = {};
@@ -254,10 +261,10 @@
     var orderLink = orderPhone ? ('https://wa.me/' + orderPhone + '?text=' + encodeURIComponent(messageText)) : '';
 
     var html = '';
-    html += '<div style="min-height:100vh; width:100%; background: radial-gradient(ellipse 1100px 650px at 50% -12%, rgba(184,86,46,0.26), transparent 62%), radial-gradient(ellipse 800px 520px at 100% 8%, rgba(150,70,40,0.18), transparent 58%), radial-gradient(ellipse 800px 520px at -5% 55%, rgba(120,55,32,0.16), transparent 58%), radial-gradient(ellipse 900px 600px at 50% 110%, rgba(140,62,34,0.14), transparent 60%), linear-gradient(180deg,#140d0a 0%, #0c0908 45%, #0b0a08 100%); color:#ece6da; position:relative">';
+    html += '<div style="min-height:100vh; width:100%; background:#000000; color:#ece6da; position:relative">';
 
     // Header
-    html += '<header style="text-align:center; padding:52px 20px 26px">';
+    html += '<header style="text-align:center; padding:52px 20px 26px; position:relative; isolation:isolate">' + bgLayer('bg1.jpg');
     html += '<div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px">';
     html += '<button type="button" data-action="setLang" data-lang="kk" class="nav-pill" style="' + langPillStyle('kk') + '">ҚАЗ</button>';
     html += '<button type="button" data-action="setLang" data-lang="ru" class="nav-pill" style="' + langPillStyle('ru') + '">РУС</button>';
@@ -268,19 +275,18 @@
     html += '</div>';
     html += '<h2 style="margin:26px 0 10px; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:64px; line-height:1; letter-spacing:2px; text-transform:uppercase; color:#f5f1e6">' + T('Мәзір', 'Меню') + '</h2>';
     html += '<div style="display:flex; align-items:center; justify-content:center; gap:10px"><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span><p style="margin:0; font-size:11px; letter-spacing:2px; color:#a89a86; text-transform:uppercase">' + T('Тағамды таңдап тапсырып беріңіз', 'Выберите блюда и оформите заказ') + '</p><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span></div>';
-    html += '</header>';
-
     // Nav
-    html += '<nav aria-label="Санаттар" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:0 20px 44px; max-width:800px; margin:0 auto">';
+    html += '<nav aria-label="Санаттар" style="position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:0 20px 44px; max-width:800px; margin:0 auto">';
     navItemsData.forEach(function (n) {
       html += '<a href="#' + n.id + '" data-action="navClick" data-id="' + n.id + '" class="nav-pill" style="' + pillStyleNav(n.id) + '">' + n.title + '</a>';
     });
     html += '</nav>';
+    html += '</header>';
 
     // Main
     html += '<main style="max-width:900px; margin:0 auto; padding:0 20px 230px">';
 
-    html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:22px; margin-bottom:46px">';
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:22px; margin-bottom:46px; padding:24px 0; position:relative; isolation:isolate">' + bgLayer('bg2.webp');
     categories.forEach(function (cat) {
       html += '<section id="' + cat.id + '" style="border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:26px 22px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
       html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center">';
@@ -314,7 +320,7 @@
     html += '</div></section>';
 
     // Sets
-    html += '<section id="sets" style="margin:0 0 20px 0; scroll-margin-top:30px">';
+    html += '<section id="sets" style="margin:0 0 20px 0; scroll-margin-top:30px; padding:24px 16px; position:relative; isolation:isolate">' + bgLayer('bg3.webp');
     html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:28px; letter-spacing:1px; text-transform:uppercase; color:#f5f1e6">' + T('Сеттер', 'Сеты') + '</h3><span style="width:50px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px">';
     sets.forEach(function (set) {
@@ -329,7 +335,7 @@
     html += '</div></section>';
 
     // Mini sets
-    html += '<section id="mini_sets" style="margin:46px 0 20px 0; scroll-margin-top:30px">';
+    html += '<section id="mini_sets" style="margin:46px 0 20px 0; scroll-margin-top:30px; padding:24px 16px; position:relative; isolation:isolate">' + bgLayer('bg4.webp');
     html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:28px; letter-spacing:1px; text-transform:uppercase; color:#f5f1e6">' + T('Мини сеттер', 'Мини-сеты') + '</h3><span style="width:50px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px">';
     miniSets.forEach(function (mset) {
@@ -353,7 +359,7 @@
     html += '</div></section>';
 
     // Rules
-    html += '<section id="rules" style="margin:46px 0 20px 0; border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:28px 24px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
+    html += '<section id="rules" style="margin:46px 0 20px 0; padding:28px 16px; scroll-margin-top:30px; position:relative; isolation:isolate">' + bgLayer('bg6.webp');
     html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:#f3ead3">' + T('Мекеме ережелері', 'Правила заведения') + '</h3><span style="width:44px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '<p style="margin:0 0 16px; font-size:14px; line-height:1.7; color:#cfc7b8">' + T('Bratskiy Shashlyk кафесіне кіре отырып, төменде көрсетілген ережелер мен шарттармен келісесіз. Аталған ережелер барлық келушілер үшін міндетті. Мекемеде тыйым салынады:', 'Заходя в кафе Bratskiy Shashlyk, вы соглашаетесь с указанными ниже правилами и условиями. Эти правила обязательны для всех посетителей. В заведении запрещается:') + '</p>';
     html += '<ul style="margin:0 0 16px; padding-left:20px; display:flex; flex-direction:column; gap:8px">';
@@ -365,7 +371,7 @@
     html += '</main>';
 
     // Footer
-    html += '<footer style="text-align:center; padding:40px 20px 64px; border-top:1px solid rgba(205,168,106,0.15); margin-top:10px">';
+    html += '<footer style="text-align:center; padding:40px 20px 64px; border-top:1px solid rgba(205,168,106,0.15); margin-top:10px; position:relative; isolation:isolate">' + bgLayer('bg5.webp');
     html += '<p style="font-size:13px; color:#a89f8f; margin:0 0 10px; letter-spacing:0.5px">' + T('Қызмет көрсету — 10%', 'Обслуживание — 10%') + '</p>';
     html += '<p style="font-family:\'Oswald\',sans-serif; font-size:18px; letter-spacing:0.5px; color:' + ACCENT + '; margin:0 0 18px">' + T('Асыңыз дәмді болсын, сізге жағымды және көтеріңкі көңіл күй тілейміз', 'Приятного аппетита, желаем вам хорошего и приподнятого настроения') + '</p>';
     html += '<p style="font-size:12px; color:#6b6355; margin:0; letter-spacing:1px">BRATSKIY SHASHLYK</p>';
@@ -374,11 +380,6 @@
     // Cart bar
     if (hasItems) {
       html += '<div style="position:fixed; left:0; right:0; bottom:0; z-index:40; background:rgba(14,12,9,0.94); backdrop-filter:blur(6px); border-top:1px solid rgba(205,168,106,0.35); padding:14px 18px; display:flex; flex-direction:column; align-items:center; gap:10px">';
-      if (state.cartOpen) {
-        html += '<div style="width:100%; max-width:800px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-bottom:4px; border-bottom:1px solid rgba(205,168,106,0.2)">';
-        chosenItemsList.forEach(function (t) { html += '<div style="font-size:13px; color:#cfc7b8">' + t + '</div>'; });
-        html += '</div>';
-      }
       html += '<div style="width:100%; max-width:800px; display:flex; flex-direction:column; gap:6px">';
       html += '<div style="font-size:11px; letter-spacing:1px; color:#a89f8f; text-transform:uppercase">' + T('Мекен-жайды таңдаңыз', 'Выберите адрес') + '</div>';
       html += '<div style="display:flex; gap:10px; flex-wrap:wrap">';
@@ -390,6 +391,11 @@
       html += '<button type="button" data-action="setDelivery" data-type="pickup" style="' + deliveryPillStyle('pickup') + '">' + T('Барып алу', 'Самовывоз') + '</button>';
       html += '<button type="button" data-action="setDelivery" data-type="delivery" style="' + deliveryPillStyle('delivery') + '">' + T('Жеткізу', 'Доставка') + '</button>';
       html += '</div>';
+      if (state.cartOpen) {
+        html += '<div style="width:100%; max-width:800px; max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding:8px 0; border-top:1px solid rgba(205,168,106,0.2); border-bottom:1px solid rgba(205,168,106,0.2)">';
+        chosenItemsList.forEach(function (t) { html += '<div style="font-size:13px; color:#cfc7b8">' + t + '</div>'; });
+        html += '</div>';
+      }
       html += '<div style="width:100%; max-width:800px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap">';
       html += '<button type="button" data-action="toggleCart" style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:8px; color:#ece6da; text-align:left"><div><div style="font-size:13px; color:#a89f8f; display:flex; align-items:center; gap:6px">' + T('Себетте: ', 'В корзине: ') + totalQty + T(' дана', ' шт') + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a89f8f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(' + (state.cartOpen ? '180deg' : '0deg') + '); transition:transform .15s ease"><path d="M5 9l7 7 7-7"></path></svg></div><div style="font-size:18px; font-weight:700; color:#f3ead3">' + fmtPrice(totalPrice) + '</div></div></button>';
       html += '<div style="display:flex; align-items:center; gap:14px">';
