@@ -181,10 +181,8 @@
   }
 
   function bgLayer(src) {
-    var fade = 'linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%)';
-    return '' +
-      '<div style="position:absolute; top:-60px; bottom:-60px; left:50%; width:100vw; transform:translateX(-50%) scale(1.08); z-index:-1; background-image:url(' + src + '); background-size:cover; background-position:center; filter:blur(24px) saturate(0.7) brightness(0.8); -webkit-mask-image:' + fade + '; mask-image:' + fade + '"></div>' +
-      '<div style="position:absolute; top:-60px; bottom:-60px; left:50%; width:100vw; transform:translateX(-50%); z-index:-1; background:rgba(0,0,0,0.86)"></div>';
+    var fade = 'linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%)';
+    return '<div style="position:absolute; top:0; bottom:0; left:50%; width:100vw; transform:translateX(-50%); z-index:-1; background-image:url(' + src + '); background-size:cover; background-position:center; -webkit-mask-image:' + fade + '; mask-image:' + fade + '"></div>';
   }
 
   function render() {
@@ -264,7 +262,7 @@
     html += '<div style="min-height:100vh; width:100%; background:#000000; color:#ece6da; position:relative">';
 
     // Header
-    html += '<header style="text-align:center; padding:52px 20px 26px; position:relative; isolation:isolate">' + bgLayer('bg1.jpg');
+    html += '<header style="text-align:center; padding:52px 20px 26px; position:relative; isolation:isolate">' + bgLayer('bg1.png');
     html += '<div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:24px">';
     html += '<button type="button" data-action="setLang" data-lang="kk" class="nav-pill" style="' + langPillStyle('kk') + '">ҚАЗ</button>';
     html += '<button type="button" data-action="setLang" data-lang="ru" class="nav-pill" style="' + langPillStyle('ru') + '">РУС</button>';
@@ -274,7 +272,7 @@
     html += '<div style="display:flex; align-items:center; justify-content:center; gap:12px"><span style="width:28px; height:1px; background:' + ACCENT + '"></span><span style="font-family:\'Montserrat\',sans-serif; font-size:12px; letter-spacing:4px; color:' + ACCENT + '; font-weight:600">SHASHLYK · HALAL</span><span style="width:28px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '</div>';
     html += '<h2 style="margin:26px 0 10px; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:64px; line-height:1; letter-spacing:2px; text-transform:uppercase; color:#f5f1e6">' + T('Мәзір', 'Меню') + '</h2>';
-    html += '<div style="display:flex; align-items:center; justify-content:center; gap:10px"><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span><p style="margin:0; font-size:11px; letter-spacing:2px; color:#a89a86; text-transform:uppercase">' + T('Тағамды таңдап тапсырып беріңіз', 'Выберите блюда и оформите заказ') + '</p><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span></div>';
+    html += '<div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:40px 0"><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span><p style="margin:0; font-size:11px; letter-spacing:2px; color:#a89a86; text-transform:uppercase">' + T('Тағамды таңдап тапсырып беріңіз', 'Выберите блюда и оформите заказ') + '</p><span style="width:18px; height:1px; background:rgba(205,168,106,0.5)"></span></div>';
     // Nav
     html += '<nav aria-label="Санаттар" style="position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:0 20px 44px; max-width:800px; margin:0 auto">';
     navItemsData.forEach(function (n) {
@@ -286,7 +284,7 @@
     // Main
     html += '<main style="max-width:900px; margin:0 auto; padding:0 20px 230px">';
 
-    html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:22px; margin-bottom:46px; padding:24px 0; position:relative; isolation:isolate">' + bgLayer('bg2.webp');
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:22px; margin-bottom:46px; padding:24px 0; position:relative; isolation:isolate">' + bgLayer('bg2.png');
     categories.forEach(function (cat) {
       html += '<section id="' + cat.id + '" style="border:1.5px solid rgba(205,168,106,0.4); border-radius:18px; padding:26px 22px; background:rgba(255,255,255,0.02); scroll-margin-top:30px">';
       html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center">';
@@ -320,7 +318,7 @@
     html += '</div></section>';
 
     // Sets
-    html += '<section id="sets" style="margin:0 0 20px 0; scroll-margin-top:30px; padding:24px 16px; position:relative; isolation:isolate">' + bgLayer('bg3.webp');
+    html += '<section id="sets" style="margin:0 0 20px 0; scroll-margin-top:30px; padding:24px 16px; position:relative; isolation:isolate">' + bgLayer('bg3.png');
     html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:28px; letter-spacing:1px; text-transform:uppercase; color:#f5f1e6">' + T('Сеттер', 'Сеты') + '</h3><span style="width:50px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px">';
     sets.forEach(function (set) {
@@ -335,7 +333,7 @@
     html += '</div></section>';
 
     // Mini sets
-    html += '<section id="mini_sets" style="margin:46px 0 20px 0; scroll-margin-top:30px; padding:24px 16px; position:relative; isolation:isolate">' + bgLayer('bg4.webp');
+    html += '<section id="mini_sets" style="margin:46px 0 20px 0; scroll-margin-top:30px; padding:24px 16px; position:relative; isolation:isolate">' + bgLayer('bg4.png');
     html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:800; font-size:28px; letter-spacing:1px; text-transform:uppercase; color:#f5f1e6">' + T('Мини сеттер', 'Мини-сеты') + '</h3><span style="width:50px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px">';
     miniSets.forEach(function (mset) {
@@ -359,7 +357,7 @@
     html += '</div></section>';
 
     // Rules
-    html += '<section id="rules" style="margin:46px 0 20px 0; padding:28px 16px; scroll-margin-top:30px; position:relative; isolation:isolate">' + bgLayer('bg6.webp');
+    html += '<section id="rules" style="margin:46px 0 20px 0; padding:28px 16px; scroll-margin-top:30px; position:relative; isolation:isolate">' + bgLayer('bg6.png');
     html += '<div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px; text-align:center"><h3 style="margin:0; font-family:\'Oswald\',sans-serif; font-weight:700; font-size:20px; letter-spacing:1px; text-transform:uppercase; color:#f3ead3">' + T('Мекеме ережелері', 'Правила заведения') + '</h3><span style="width:44px; height:1px; background:' + ACCENT + '"></span></div>';
     html += '<p style="margin:0 0 16px; font-size:14px; line-height:1.7; color:#cfc7b8">' + T('Bratskiy Shashlyk кафесіне кіре отырып, төменде көрсетілген ережелер мен шарттармен келісесіз. Аталған ережелер барлық келушілер үшін міндетті. Мекемеде тыйым салынады:', 'Заходя в кафе Bratskiy Shashlyk, вы соглашаетесь с указанными ниже правилами и условиями. Эти правила обязательны для всех посетителей. В заведении запрещается:') + '</p>';
     html += '<ul style="margin:0 0 16px; padding-left:20px; display:flex; flex-direction:column; gap:8px">';
@@ -371,7 +369,7 @@
     html += '</main>';
 
     // Footer
-    html += '<footer style="text-align:center; padding:40px 20px 64px; border-top:1px solid rgba(205,168,106,0.15); margin-top:10px; position:relative; isolation:isolate">' + bgLayer('bg5.webp');
+    html += '<footer style="text-align:center; padding:40px 20px 64px; border-top:1px solid rgba(205,168,106,0.15); margin-top:10px; position:relative; isolation:isolate">' + bgLayer('bg5.png');
     html += '<p style="font-size:13px; color:#a89f8f; margin:0 0 10px; letter-spacing:0.5px">' + T('Қызмет көрсету — 10%', 'Обслуживание — 10%') + '</p>';
     html += '<p style="font-family:\'Oswald\',sans-serif; font-size:18px; letter-spacing:0.5px; color:' + ACCENT + '; margin:0 0 18px">' + T('Асыңыз дәмді болсын, сізге жағымды және көтеріңкі көңіл күй тілейміз', 'Приятного аппетита, желаем вам хорошего и приподнятого настроения') + '</p>';
     html += '<p style="font-size:12px; color:#6b6355; margin:0; letter-spacing:1px">BRATSKIY SHASHLYK</p>';
