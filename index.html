@@ -24,7 +24,11 @@
 <script>
 (function () {
   var ACCENT = '#caa24c';
-  var WHATSAPP_PHONE = '77070567077';
+
+  var ADDRESSES = [
+    { kk: 'Ақбақай көшесі, 2 / Садуақасов көшесі, 120', ru: 'Улица Акбакай, 2 / улица Садвакасова, 120', phone: '77075670777' },
+    { kk: 'Жұмабаев көшесі, 31 / Кабардин көшесі, 37', ru: 'Улица Жумабаева, 31 / улица Кабардинская, 37', phone: '77075470777' }
+  ];
 
   var state = {
     lang: 'kk',
@@ -32,7 +36,8 @@
     sauceSel: {},
     activeNav: null,
     cartOpen: false,
-    deliveryType: 'pickup'
+    deliveryType: 'pickup',
+    selectedAddress: null
   };
 
   function T(kk, ru) { return state.lang === 'ru' ? ru : kk; }
@@ -153,6 +158,13 @@
       : base + "font-weight:500; border:1px solid rgba(205,168,106,0.4); color:#e7dcc2; background:rgba(255,255,255,0.03);";
   }
 
+  function addressPillStyle(idx) {
+    var base = "flex:1 1 auto; padding:9px 14px; border-radius:999px; font-family:'Montserrat',sans-serif; font-size:13px; text-align:center; cursor:pointer;";
+    return state.selectedAddress === idx
+      ? base + "font-weight:700; border:1px solid " + ACCENT + "; color:#1a1408; background:" + ACCENT + ";"
+      : base + "font-weight:500; border:1px solid rgba(205,168,106,0.4); color:#e7dcc2; background:rgba(255,255,255,0.03);";
+  }
+
   function stepperHtml(key, qty, big) {
     var sz = big ? 28 : 24;
     var icoSz = big ? 12 : 11;
@@ -230,11 +242,16 @@
     var chosenItemsList = chosen.map(function (e) { return e.name + ' — ' + e.qty + ' × ' + e.priceText; })
       .concat(selectedSauceNames);
 
+    var addressChosen = state.selectedAddress !== null ? ADDRESSES[state.selectedAddress] : null;
+    var addressChosenLabel = addressChosen ? T(addressChosen.kk, addressChosen.ru) : '';
+
     var orderLines = chosen.map(function (e) { return e.name + ' — ' + e.qty + ' x ' + fmtPrice(e.price) + ' = ' + fmtPrice(e.qty * e.price); }).join('\n');
     var sauceLine = selectedSauceNames.length ? T('\n\nСоустар: ', '\n\nСоусы: ') + selectedSauceNames.join(', ') : '';
     var deliveryLine = T('\n\nАлу тәсілі: ', '\n\nСпособ получения: ') + deliveryChosenLabel;
-    var messageText = T('Тапсырыс — Bratskiy Shashlyk\n\n', 'Заказ — Bratskiy Shashlyk\n\n') + orderLines + sauceLine + deliveryLine + T('\n\nЖалпы сома: ', '\n\nИтого: ') + fmtPrice(totalPrice);
-    var orderLink = 'https://wa.me/' + WHATSAPP_PHONE + '?text=' + encodeURIComponent(messageText);
+    var addressLine = addressChosen ? T('\n\nМекен-жай: ', '\n\nАдрес: ') + addressChosenLabel : '';
+    var messageText = T('Тапсырыс — Bratskiy Shashlyk\n\n', 'Заказ — Bratskiy Shashlyk\n\n') + orderLines + sauceLine + deliveryLine + addressLine + T('\n\nЖалпы сома: ', '\n\nИтого: ') + fmtPrice(totalPrice);
+    var orderPhone = addressChosen ? addressChosen.phone : '';
+    var orderLink = orderPhone ? ('https://wa.me/' + orderPhone + '?text=' + encodeURIComponent(messageText)) : '';
 
     var html = '';
     html += '<div style="min-height:100vh; width:100%; background: radial-gradient(ellipse 1100px 650px at 50% -12%, rgba(184,86,46,0.26), transparent 62%), radial-gradient(ellipse 800px 520px at 100% 8%, rgba(150,70,40,0.18), transparent 58%), radial-gradient(ellipse 800px 520px at -5% 55%, rgba(120,55,32,0.16), transparent 58%), radial-gradient(ellipse 900px 600px at 50% 110%, rgba(140,62,34,0.14), transparent 60%), linear-gradient(180deg,#140d0a 0%, #0c0908 45%, #0b0a08 100%); color:#ece6da; position:relative">';
@@ -362,6 +379,13 @@
         chosenItemsList.forEach(function (t) { html += '<div style="font-size:13px; color:#cfc7b8">' + t + '</div>'; });
         html += '</div>';
       }
+      html += '<div style="width:100%; max-width:800px; display:flex; flex-direction:column; gap:6px">';
+      html += '<div style="font-size:11px; letter-spacing:1px; color:#a89f8f; text-transform:uppercase">' + T('Мекен-жайды таңдаңыз', 'Выберите адрес') + '</div>';
+      html += '<div style="display:flex; gap:10px; flex-wrap:wrap">';
+      ADDRESSES.forEach(function (addr, idx) {
+        html += '<button type="button" data-action="setAddress" data-idx="' + idx + '" style="' + addressPillStyle(idx) + '">' + T(addr.kk, addr.ru) + '</button>';
+      });
+      html += '</div></div>';
       html += '<div style="width:100%; max-width:800px; display:flex; gap:10px">';
       html += '<button type="button" data-action="setDelivery" data-type="pickup" style="' + deliveryPillStyle('pickup') + '">' + T('Барып алу', 'Самовывоз') + '</button>';
       html += '<button type="button" data-action="setDelivery" data-type="delivery" style="' + deliveryPillStyle('delivery') + '">' + T('Жеткізу', 'Доставка') + '</button>';
@@ -370,7 +394,11 @@
       html += '<button type="button" data-action="toggleCart" style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center; gap:8px; color:#ece6da; text-align:left"><div><div style="font-size:13px; color:#a89f8f; display:flex; align-items:center; gap:6px">' + T('Себетте: ', 'В корзине: ') + totalQty + T(' дана', ' шт') + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a89f8f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(' + (state.cartOpen ? '180deg' : '0deg') + '); transition:transform .15s ease"><path d="M5 9l7 7 7-7"></path></svg></div><div style="font-size:18px; font-weight:700; color:#f3ead3">' + fmtPrice(totalPrice) + '</div></div></button>';
       html += '<div style="display:flex; align-items:center; gap:14px">';
       html += '<button type="button" data-action="clearCart" style="background:none; border:none; padding:0; color:#a89f8f; font-size:13px; text-decoration:underline; cursor:pointer">' + T('Себетті тазалау', 'Очистить корзину') + '</button>';
-      html += '<a href="' + orderLink + '" target="_blank" rel="noopener" style="text-decoration:none; padding:13px 26px; border-radius:999px; background:' + ACCENT + '; color:#1a1408; font-weight:700; font-size:15px; white-space:nowrap">' + T('Тапсырыс беру →', 'Оформить заказ →') + '</a>';
+      if (addressChosen) {
+        html += '<a href="' + orderLink + '" target="_blank" rel="noopener" style="text-decoration:none; padding:13px 26px; border-radius:999px; background:' + ACCENT + '; color:#1a1408; font-weight:700; font-size:15px; white-space:nowrap">' + T('Тапсырыс беру →', 'Оформить заказ →') + '</a>';
+      } else {
+        html += '<span title="' + esc(T('Алдымен мекен-жайды таңдаңыз', 'Сначала выберите адрес')) + '" style="opacity:0.4; cursor:not-allowed; padding:13px 26px; border-radius:999px; background:' + ACCENT + '; color:#1a1408; font-weight:700; font-size:15px; white-space:nowrap">' + T('Тапсырыс беру →', 'Оформить заказ →') + '</span>';
+      }
       html += '</div></div></div>';
     }
 
@@ -395,6 +423,7 @@
       render();
     }
     else if (action === 'setDelivery') { state.deliveryType = el.getAttribute('data-type'); render(); }
+    else if (action === 'setAddress') { state.selectedAddress = parseInt(el.getAttribute('data-idx'), 10); render(); }
     else if (action === 'toggleCart') { state.cartOpen = !state.cartOpen; render(); }
     else if (action === 'clearCart') { state.cart = {}; state.sauceSel = {}; render(); }
   });
